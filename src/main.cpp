@@ -9,7 +9,8 @@
 GLuint textureList;
 GLuint texSnow;
 GLuint cubemap[6];
-float waveFlow = 0.0f;
+float waveShift = 0.0f;
+int timeLastFrame = 0;
 
 void display(void)
 {
@@ -24,28 +25,38 @@ void display(void)
 
     glPushMatrix();
 
-        glCallList(textureList);
+    glScalef(100.0, 100.0, 100.0);
 
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    // Waves
+    glColor4f(0.7,0.9,1.0,1.0);
 
-        // Waves
-        glColor4f(0.7,0.9,1.0,0.5);
+    glBindTexture(GL_TEXTURE_2D, cubemap[3]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Repeat texture
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 10.0f); glVertex3f(-1.0f, -0.5f, -1.0f+waveShift);  // Top Right Of The Texture and Quad
+    glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -0.5f, -1.0f+waveShift);  // Top Left Of The Texture and Quad
+    glTexCoord2f(10.0f, 0.0f); glVertex3f( 1.0f, -0.5f,  1.3f+waveShift);  // Bottom Left Of The Texture and Quad
+    glTexCoord2f(10.0f, 10.0f); glVertex3f(-1.0f, -0.5f,  1.3f+waveShift);  // Bottom Right Of The Texture and Quad
+    glEnd();
 
-        glBindTexture(GL_TEXTURE_2D, cubemap[3]);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Repeat texture
-        glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 5.0f); glVertex3f(-1.0f, -0.5f, -1.0f);  // Top Right Of The Texture and Quad
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -0.5f, -1.0f);  // Top Left Of The Texture and Quad
-        glTexCoord2f(5.0f, 0.0f); glVertex3f( 1.0f, -0.5f,  1.0f);  // Bottom Left Of The Texture and Quad
-        glTexCoord2f(5.0f, 5.0f); glVertex3f(-1.0f, -0.5f,  1.0f);  // Bottom Right Of The Texture and Quad
-        glEnd();
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+    glCallList(textureList);
 
     glPopMatrix();
 
     glPopMatrix();
 
-    waveFlow += 0.001;
+    int timeThisFrame = glutGet(GLUT_ELAPSED_TIME);
+    int deltaTime = timeThisFrame - timeLastFrame;
+    timeLastFrame = timeThisFrame;
+    waveShift -= deltaTime * 0.00005;
+
+    if(waveShift < -0.23)
+    {
+        waveShift = 0;
+    }
 
     glFlush();
     glutSwapBuffers();
@@ -70,7 +81,20 @@ GLuint loadTexture( char* texName)
 
 void drawSky()
 {
-    glScalef(100.0, 100.0, 100.0);
+
+
+    glColor4f(1.0,1.0,1.0,0.5);
+
+    // Bottom Face
+    glBindTexture(GL_TEXTURE_2D, cubemap[2]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Repeat texture
+    glBegin(GL_QUADS);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -0.5f, -1.0f);  // Top Right Of The Texture and Quad
+    glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -0.5f, -1.0f);  // Top Left Of The Texture and Quad
+    glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -0.5f,  1.0f);  // Bottom Left Of The Texture and Quad
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f, -0.5f,  1.0f);  // Bottom Right Of The Texture and Quad
+    glEnd();
 
     glBlendFunc(GL_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor4f(1.0,1.0,1.0,1.0);
@@ -130,18 +154,7 @@ void drawSky()
     glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  0.5f, -1.0f);  // Top Right Of The Texture and Quad
     glEnd();
 
-    glColor4f(1.0,1.0,1.0,1.0);
 
-    // Bottom Face
-    glBindTexture(GL_TEXTURE_2D, cubemap[2]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Repeat texture
-    glBegin(GL_QUADS);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -0.5f, -1.0f);  // Top Right Of The Texture and Quad
-    glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -0.5f, -1.0f);  // Top Left Of The Texture and Quad
-    glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -0.5f,  1.0f);  // Bottom Left Of The Texture and Quad
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f, -0.5f,  1.0f);  // Bottom Right Of The Texture and Quad
-    glEnd();
 }
 
 void init (void) {
