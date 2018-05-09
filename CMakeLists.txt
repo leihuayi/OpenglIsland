@@ -10,7 +10,7 @@ find_package(GLUT REQUIRED)
 find_package(SOIL)
 include_directories(. include src ${OPENGL_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS} ${SOIL_INCLUDE_DIRS})
 
-set(SOURCE_FILES src/main.cpp src/interactionManager.cpp )
+set(SOURCE_FILES src/main.cpp src/interactionManager.cpp src/terrain.cpp)
 add_executable(Terrain ${SOURCE_FILES})
 
 target_link_libraries(Terrain ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${SOIL_LIBRARY})
