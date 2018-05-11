@@ -19,10 +19,7 @@ void display(void)
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glPushMatrix();
-        updateCameraSpeed();
-        gluLookAt(0.0, 0.0, zoom, 0.0, -30.0, zoom+20, 0.0, 1.0, 0.0);
-        glRotatef(xrot, 1.0f, 0.0f, 0.0f);
-        glRotatef(yrot, 0.0f, 1.0f, 0.0f);
+        updateCamera();
 
     glPushMatrix();
             glScalef(100.0, 100.0, 100.0);
@@ -114,8 +111,8 @@ void init (void) {
     GLdouble plane[4] = {0.0,1,0.0,-7};
 
     glNewList(terrainList + 2, GL_COMPILE);
-        glTranslatef(-10,-57,-10);
-        glScalef(0.5,0.5,0.5);
+        glTranslatef(0,-57,0);
+        glScalef(0.3,0.3,0.3);
         glClipPlane(GL_CLIP_PLANE0, plane);
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_TEXTURE_2D);
@@ -138,8 +135,6 @@ void init (void) {
         glDisable(GL_TEXTURE_2D);
         glDisable(GL_TEXTURE_2D);
     glEndList();
-
-    gluLookAt(0.0, 0.0, 30.0, 0.0, -30.0, 50.0, 0.0, 1.0, 0.0);
 }
 
 int main(int argc, char** argv)
@@ -153,8 +148,8 @@ int main(int argc, char** argv)
     init ();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
-    glutKeyboardFunc(keyboard);
-    glutKeyboardUpFunc(keyboardUp);
+    glutSpecialFunc(keyboard);
+    glutSpecialUpFunc(keyboardUp);
     glutMouseFunc(mouse);
     glutMotionFunc(mouseMotion);
     glutMainLoop();

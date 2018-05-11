@@ -132,12 +132,14 @@ I followed the same steps as described in the guide pdf file.
 
 7- I implemented the interactions in interactionManager.cpp.
     The rotation of the camera was made like in the Pyramid homework.
-    The camera zooms in as long as the space key is pressed. In order to know when the space
+    The camera zooms/out in as long as the arrow up/down is pressed. In order to know when the
     key is released, I had use the setting glutIgnoreKeyRepeat(true); so that each small key
     press in the long key press don't raise a key release event.
     Then, in order to slowly increase of decrease camera speed for smooth transition, I use
     a variable CAMERA_SPEED equal to 0 if the camera doesn't move, 1 if its speed increase
-    and 2 if its speed decrease. When space is pressed, I set CAMERA_SPEED to 1 and increase
-    the zooming speed of the camera until reaching 1, and when space is released I set
+    and 2 if its speed decrease. When arrow is pressed, I set CAMERA_SPEED to 1 and increase
+    the zooming speed of the camera until reaching 1, and when arrow is released I set
     CAMERA_SPEED to 2 and decrease the zooming speed until reaching 0. This is done in
     interactionManager.cpp/updateCameraSpeed() function.
+
+    I limit zooming out, otherwise when zoom value gets negative the whole scene is inverted.
