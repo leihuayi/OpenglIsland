@@ -94,7 +94,7 @@ void drawSky(GLuint textureSky[])
     glEnd();
 }
 
-void drawTerrain(unsigned char pHeightMap[])             // This Renders The Height Map As Quads
+void drawTerrain(unsigned char pHeightMap[], int map_size)             // This Renders The Height Map As Quads
 {
     int X = 0, Y = 0;                   // Create Some Variables To Walk The Array With.
     int x, y, z;                        // Create Some Variables For Readability
@@ -108,14 +108,14 @@ void drawTerrain(unsigned char pHeightMap[])             // This Renders The Hei
     glBegin(GL_QUADS);
 
     float size = 0.5f;
-    float scale = 0.1f;
-    float step = 1.0f / 255.0f;
-    for (int i = 0; i < 255; ++i)  {
-        for (int j = 0; j < 255; ++j)  {
-            float height1 = pHeightMap[(i * 256) + j] * scale;
-            float height2 = pHeightMap[i * 256 + j + 1] * scale;
-            float height3 = pHeightMap[(i + 1) * 256 + j] * scale;
-            float height4 = pHeightMap[(i + 1) * 256 + j + 1] * scale;
+    float scale = 0.1f; // Scale : rescale the terrain in height
+    float step = 1.0f / (map_size - 1);
+    for (int i = 0; i < map_size - 1; ++i)  {
+        for (int j = 0; j < map_size - 1; ++j)  {
+            float height1 = pHeightMap[i * map_size + j] * scale;
+            float height2 = pHeightMap[i * map_size + j + 1] * scale;
+            float height3 = pHeightMap[(i + 1) * map_size + j] * scale;
+            float height4 = pHeightMap[(i + 1) * map_size + j + 1] * scale;
             float x1 = i * size;
             float y1 = j * size;
             float x2 = (i + 1) * size;
@@ -133,7 +133,7 @@ void drawTerrain(unsigned char pHeightMap[])             // This Renders The Hei
             glMultiTexCoord2f(GL_TEXTURE1, 1, 1);
             glVertex3f(x2, height4, y2);
 
-            glMultiTexCoord2f(GL_TEXTURE0, (j + 1) * step, (i) * step);
+            glMultiTexCoord2f(GL_TEXTURE0, (j + 1) * step, i * step);
             glMultiTexCoord2f(GL_TEXTURE1, 1, 0);
             glVertex3f(x1, height2, y2);
         }

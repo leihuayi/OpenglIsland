@@ -83,7 +83,7 @@ void init (void) {
 
     glEnable(GL_BLEND); // Enable transparency on texture
     glDisable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);   // Enable Texture Mapping
+    //glEnable(GL_TEXTURE_2D);   // Enable Texture Mapping
     glEnable(GL_CLIP_PLANE0);
 
     glutIgnoreKeyRepeat(true);
@@ -105,27 +105,46 @@ void init (void) {
     terrainList = glGenLists(3);
 
     glNewList(terrainList, GL_COMPILE);
-    drawSky(textureSky);
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_TEXTURE_2D);
+        drawSky(textureSky);
+        glDisable(GL_TEXTURE_2D);
     glEndList();
 
     glNewList(terrainList + 1, GL_COMPILE);
-    drawWave(textureWave);
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_TEXTURE_2D);
+        drawWave(textureWave);
+        glDisable(GL_TEXTURE_2D);
     glEndList();
 
     GLdouble plane[4] = {0.0,1,0.0,-7};
 
     glNewList(terrainList + 2, GL_COMPILE);
-    glTranslatef(-10,-57,-10);
-    glScalef(0.5,0.5,0.5);
-    glClipPlane(GL_CLIP_PLANE0, plane);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureTerrain[0]);
+        glTranslatef(-10,-57,-10);
+        glScalef(0.5,0.5,0.5);
+        glClipPlane(GL_CLIP_PLANE0, plane);
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textureTerrain[0]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-    //glActiveTexture(GL_TEXTURE1);
-    //glBindTexture(GL_TEXTURE_2D, textureTerrain[1]);
-    drawTerrain(heightMap);
+        glActiveTexture(GL_TEXTURE1);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textureTerrain[1]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+        drawTerrain(heightMap, MAP_SIZE);
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_TEXTURE_2D);
     glEndList();
 
     gluLookAt(0.0, 0.0, 30.0, 0.0, -30.0, 50.0, 0.0, 1.0, 0.0);

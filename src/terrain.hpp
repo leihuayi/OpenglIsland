@@ -12,4 +12,4 @@
 
 void drawWave(GLuint textureWave);
 void drawSky(GLuint textureSky[]);
-void drawTerrain(GLubyte* heightMap);
+void drawTerrain(GLubyte* heightMap, int map_size);
