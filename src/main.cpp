@@ -8,10 +8,9 @@
 #include "terrain.hpp"
 
 GLuint terrainList;
-GLuint textureSky[5], textureWave, texureTerrain;
+GLuint textureSky[5], textureWave, textureTerrain[2];
 double waveShift = 0.0f;
 int timeLastFrame = 0;
-int MAP_SIZE = 0, channels = 1, STEP_SIZE = 4;
 GLubyte* heightMap;
 
 void display(void)
@@ -21,12 +20,12 @@ void display(void)
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glPushMatrix();
-
+        updateCameraSpeed();
+        gluLookAt(0.0, 0.0, zoom, 0.0, -30.0, zoom+20, 0.0, 1.0, 0.0);
         glRotatef(xrot, 1.0f, 0.0f, 0.0f);
         glRotatef(yrot, 0.0f, 1.0f, 0.0f);
 
-
-        glPushMatrix();
+    glPushMatrix();
             glScalef(100.0, 100.0, 100.0);
 
             glPushMatrix();
@@ -87,8 +86,9 @@ void init (void) {
     glEnable(GL_TEXTURE_2D);   // Enable Texture Mapping
     glEnable(GL_CLIP_PLANE0);
 
+    glutIgnoreKeyRepeat(true);
+
     glLoadIdentity();
-    gluLookAt(0.0, 00.0, 30.0, 0.0, -30.0, 50.0, 0.0, 1.0, 0.0);
 
     // load an image file directly as a new OpenGL texture
     textureSky[0] = loadTexture("../images/SkyBox1.bmp");
@@ -97,7 +97,9 @@ void init (void) {
     textureSky[3] = loadTexture("../images/SkyBox2.bmp");
     textureSky[4] = loadTexture("../images/SkyBox0.bmp");
     textureWave = loadTexture("../images/wave.bmp");
-    texureTerrain = loadTexture("../images/terrain-texture.bmp");
+    textureTerrain[0] = loadTexture("../images/terrain-texture.bmp");
+    textureTerrain[1] = loadTexture("../images/terrain-detail.bmp");
+    int MAP_SIZE = 0, channels = 1;
     heightMap = SOIL_load_image("../images/heightmap.bmp", &MAP_SIZE, &MAP_SIZE, &channels, SOIL_LOAD_L);
 
     terrainList = glGenLists(3);
@@ -116,12 +118,17 @@ void init (void) {
     glTranslatef(-10,-57,-10);
     glScalef(0.5,0.5,0.5);
     glClipPlane(GL_CLIP_PLANE0, plane);
-    glBindTexture(GL_TEXTURE_2D, texureTerrain);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureTerrain[0]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+    //glActiveTexture(GL_TEXTURE1);
+    //glBindTexture(GL_TEXTURE_2D, textureTerrain[1]);
     drawTerrain(heightMap);
     glEndList();
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    gluLookAt(0.0, 0.0, 30.0, 0.0, -30.0, 50.0, 0.0, 1.0, 0.0);
 }
 
 int main(int argc, char** argv)
@@ -135,7 +142,8 @@ int main(int argc, char** argv)
     init ();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
-    //glutKeyboardFunc(keyboard);
+    glutKeyboardFunc(keyboard);
+    glutKeyboardUpFunc(keyboardUp);
     glutMouseFunc(mouse);
     glutMotionFunc(mouseMotion);
     glutMainLoop();

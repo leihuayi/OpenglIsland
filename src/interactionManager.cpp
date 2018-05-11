@@ -7,6 +7,9 @@
 
 static int menu_id;
 bool mouseDown = false;
+float zoom = 10.0;
+float speed = 0.0;
+int CAMERA_SPEED = 0;
 
 float xrot = 0.0f;
 float yrot = 0.0f;
@@ -34,18 +37,49 @@ void reshape(int w, int h)
     glMatrixMode (GL_MODELVIEW);
 }
 
-/*
 void keyboard(unsigned char key, int x, int y)
 {
     switch(key)
     {
         case 32: // space bar
+            CAMERA_SPEED = 1;
             break;
 
         default:
             break;
     }
-}*/
+}
+
+void keyboardUp(unsigned char key, int x, int y)
+{
+    switch(key)
+    {
+        case 32: // space bar
+            CAMERA_SPEED = 2;
+            break;
+
+        default:
+            break;
+    }
+}
+
+void updateCameraSpeed(void)
+{
+    if (CAMERA_SPEED != 0)
+    {
+        if(CAMERA_SPEED == 1)
+        {
+            zoom -= speed;
+            if (speed < 1) speed += 0.02;
+        }
+        else
+        {
+            zoom -= speed;
+            if (speed > 0) { speed -= 0.02; }
+            else { CAMERA_SPEED = 0; }
+        }
+    }
+}
 
 // Function for rotating the pyramid with the mouse
 void mouse(int button, int state, int x, int y)
