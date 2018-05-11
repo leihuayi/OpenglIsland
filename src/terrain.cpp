@@ -5,7 +5,9 @@
 #include "terrain.hpp"
 #include <iostream>
 
-void drawWave(GLuint textureWave)
+int timeLastFrame = 0;
+
+void drawWaves(GLuint textureWave)
 {
     glColor4f(0.7,0.9,1.0,1.0);
 
@@ -18,6 +20,16 @@ void drawWave(GLuint textureWave)
     glTexCoord2f(10.0f, 0.0f); glVertex3f( 1.0f, -0.5f,  1.3f);  // Bottom Left Of The Texture and Quad
     glTexCoord2f(10.0f, 10.0f); glVertex3f(-1.0f, -0.5f,  1.3f);  // Bottom Right Of The Texture and Quad
     glEnd();
+}
+
+float updateWaves(float waveShift)
+{
+    // Move the waves
+    int timeThisFrame = glutGet(GLUT_ELAPSED_TIME);
+    int deltaTime = timeThisFrame - timeLastFrame;
+    timeLastFrame = timeThisFrame;
+    waveShift = waveShift > -0.23 ? waveShift - deltaTime * 0.00005 : 0.0;
+    return waveShift;
 }
 
 void drawSky(GLuint textureSky[])
@@ -96,9 +108,6 @@ void drawSky(GLuint textureSky[])
 
 void drawTerrain(unsigned char pHeightMap[], int map_size)             // This Renders The Height Map As Quads
 {
-    int X = 0, Y = 0;                   // Create Some Variables To Walk The Array With.
-    int x, y, z;                        // Create Some Variables For Readability
-
     if(!pHeightMap)
     {
         std::cout << "No heightMap " << std::endl;
@@ -117,25 +126,25 @@ void drawTerrain(unsigned char pHeightMap[], int map_size)             // This R
             float height3 = pHeightMap[(i + 1) * map_size + j] * scale;
             float height4 = pHeightMap[(i + 1) * map_size + j + 1] * scale;
             float x1 = i * size;
-            float y1 = j * size;
+            float z1 = j * size;
             float x2 = (i + 1) * size;
-            float y2 = (j + 1) * size;
+            float z2 = (j + 1) * size;
 
             glMultiTexCoord2f(GL_TEXTURE0, j * step, i * step);
             glMultiTexCoord2f(GL_TEXTURE1, 0, 0);
-            glVertex3f(x1, height1, y1);
+            glVertex3f(x1, height1, z1);
 
             glMultiTexCoord2f(GL_TEXTURE0, j * step, (i + 1) * step);
             glMultiTexCoord2f(GL_TEXTURE1, 0, 1);
-            glVertex3f(x2, height3, y1);
+            glVertex3f(x2, height3, z1);
 
             glMultiTexCoord2f(GL_TEXTURE0, (j + 1) * step, (i + 1) * step);
             glMultiTexCoord2f(GL_TEXTURE1, 1, 1);
-            glVertex3f(x2, height4, y2);
+            glVertex3f(x2, height4, z2);
 
             glMultiTexCoord2f(GL_TEXTURE0, (j + 1) * step, i * step);
             glMultiTexCoord2f(GL_TEXTURE1, 1, 0);
-            glVertex3f(x1, height2, y2);
+            glVertex3f(x1, height2, z2);
         }
     }
 

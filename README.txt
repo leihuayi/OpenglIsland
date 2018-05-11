@@ -5,7 +5,8 @@ Author: Sarah Gross <leihy17@mails.tsinghua.edu.cn>, student 2017280160
 Overview
 ---------------------------------------------------------------------------
 
-This project renders an animation of a Terrain
+This project renders a island created from a heightmap with flowing water
+around.
 
 demo.mp4 shows a demonstration of the result 
 
@@ -55,25 +56,88 @@ SOIL.h              -- library SOIL
 cmake/              -- extra libraries loading
 
 src/                == Project-specific files.
-    main            -- contains main function for project : init of opengl
-    terrain		-- all functions for drawing the terrain : draw waves and sky
+    main            -- contains main function for project : init of opengl,
+                        creation of displaylists
+    terrain         -- all functions for drawing the terrain : sky, waves,
+                        and terrain generation, movement of waves
     interactionManager -- all functions related to user input : rotation of
                            the view, show menu, update view
 
 
 ---------------------------------------------------------------------------
-Bonus
----------------------------------------------------------------------------
-
-1- I created a background using 6 planes instead of a skybox, in order to use
-    it for the next project.
-2- There are interactions available with the mouse : drag to rotate the view,
-    right click to display a menu.
-
-
----------------------------------------------------------------------------
-Implementation details
+Implementation steps
 --------------------------------------------------------------------------
-- I decided to use 2 display lists, one for loading the background (create the 6 planes
-    and bind the texture to them), the second for the wave.
+I followed the same steps as described in the guide pdf file.
 
+1- I built the skybox using 5 planes (terrain.cpp/drawSky() ). The base is
+    a square between coordinates (-1,1), the height is between (-0.5,0.5)
+    since the original images are stretched.
+
+2- I added a 6th bottom plane to the skybox, which is the reflection of the
+    top plane. I created a new function in terrain.cpp call drawWaves() which
+    adds a plane with water texture on the reflected sky plane.
+
+3- I made the waves move.
+    I created the waves plane a big longer than the bottom plane and make
+    it move forward by translating it of value "waveShift" in z direction before
+    drawing it. If I didn't make the plane longer, the user would see the waves
+    texture disappear at the end of the ocean.
+    I update wavesShift value in terrain.cpp/updateWaves() function.
+    In order to keep the water flowing eternally, I reset waveShift value when
+    it has reached the repetition value of the texture.
+
+    How did I find this value ?
+    I set that the wave texture would repeat 10 times in the plane (when I create
+    the waves, I set glTexCoord2f(0.0f, 10.0f)). Let x the length I need to add
+    to my waves plane so that I can reset its position without the user seeing it.
+    The plane length is between (-1, 1+x) so it is 2+x long.
+    It is divided in 10 times the same texture so each texture fragment has a length
+    of 0.2 + 0.1x.
+    We want 0.2 + 0.1x < x so that we don't see the end of the wave plane before
+    we reset the wave plane position. This gives x > 0.22.
+    So I chose an x = 0.3 which is why I wrote z=1.3f for two wave plane vertices.
+    I need to reset the wave plane position when waveShift is as big as one texture
+    fragment = 0.2 + 0.1x = 0.23 hence the condition waveShift > -0.23.
+
+    Finally, in order not that the see the wave plane is bigger than the bottom plane
+    through the walls of the skyBox, I chose a blending value :
+    ```glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);```
+    between drawing the waves and drawing the sky.
+
+4- I drew the terrain by first loading the heightmap using SOIL library, then I used the
+    function terrain.cpp/drawTerrain() to loop through the heightMap array and build in each
+    loop a quad (4 vertices) by reading for each x, z value its corresponding height, using
+    the formula :
+        height for point (x, z) = heightmap[x][z] = heightmap[x * sizemap + z]
+    because heightmap is actually a one-dimension array of size (sizemap * sizemap) instead
+    of a matrix size sizemap x sizemap.
+    We resize the height using the value scale, since otherwise the terrain height variance
+    would we way too big and look strange.
+
+5- Since using blending functions to see the water through the terrain would be complicated
+    given that we already have a blending constraint on the sky - water couple, I decided to
+    use a clipping plane for that purpose.
+
+    Our skybox is originally between y (-0.5,+0.5). We scale this by 100 so now it is between
+    (-50,+50). Since the water plane is superposed on the bottom of the skybox, it is on the
+     plane of coordinate y=-50.
+     Therefore I put the terrain slightly below, on the plane y = -57 so that the water gets
+     above the lowest points of the terrain. Then I created a clipping plane of normal
+     (0,1,0) cutting everything beneath -7, since originally the terrain is centered on plane
+     y=0.
+     I enabled the depth test in order to see better the effects of these settings while
+     making these arrangements.
+
+6- I added level detail.
+
+7- I implemented the interactions in interactionManager.cpp.
+    The rotation of the camera was made like in the Pyramid homework.
+    The camera zooms in as long as the space key is pressed. In order to know when the space
+    key is released, I had use the setting glutIgnoreKeyRepeat(true); so that each small key
+    press in the long key press don't raise a key release event.
+    Then, in order to slowly increase of decrease camera speed for smooth transition, I use
+    a variable CAMERA_SPEED equal to 0 if the camera doesn't move, 1 if its speed increase
+    and 2 if its speed decrease. When space is pressed, I set CAMERA_SPEED to 1 and increase
+    the zooming speed of the camera until reaching 1, and when space is released I set
+    CAMERA_SPEED to 2 and decrease the zooming speed until reaching 0. This is done in
+    interactionManager.cpp/updateCameraSpeed() function.

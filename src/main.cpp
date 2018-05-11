@@ -9,8 +9,7 @@
 
 GLuint terrainList;
 GLuint textureSky[5], textureWave, textureTerrain[2];
-double waveShift = 0.0f;
-int timeLastFrame = 0;
+float waveShift = 0.0f;
 GLubyte* heightMap;
 
 void display(void)
@@ -45,15 +44,9 @@ void display(void)
 
             glCallList(terrainList + 2);
         glPopMatrix();
-
-
     glPopMatrix();
 
-    // Move the waves
-    int timeThisFrame = glutGet(GLUT_ELAPSED_TIME);
-    int deltaTime = timeThisFrame - timeLastFrame;
-    timeLastFrame = timeThisFrame;
-    waveShift = waveShift > -0.23 ? waveShift - deltaTime * 0.00005 : 0.0 ;
+    waveShift = updateWaves(waveShift);
 
     glFlush();
     glutSwapBuffers();
@@ -114,7 +107,7 @@ void init (void) {
     glNewList(terrainList + 1, GL_COMPILE);
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_TEXTURE_2D);
-        drawWave(textureWave);
+        drawWaves(textureWave);
         glDisable(GL_TEXTURE_2D);
     glEndList();
 
@@ -131,7 +124,6 @@ void init (void) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
         glActiveTexture(GL_TEXTURE1);
         glEnable(GL_TEXTURE_2D);
@@ -140,7 +132,7 @@ void init (void) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD_SIGNED);
 
         drawTerrain(heightMap, MAP_SIZE);
         glDisable(GL_TEXTURE_2D);

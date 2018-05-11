@@ -10,6 +10,7 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 
-void drawWave(GLuint textureWave);
+void drawWaves(GLuint textureWave);
+float updateWaves(float waveshift);
 void drawSky(GLuint textureSky[]);
 void drawTerrain(GLubyte* heightMap, int map_size);

@@ -9,7 +9,7 @@ static int menu_id;
 bool mouseDown = false;
 float zoom = 10.0;
 float speed = 0.0;
-int CAMERA_SPEED = 0;
+int CAMERA_SPEED = 0; // = 0 if the camera doesn't move, =1 is camera speed increases, =2 if camera speed decreases.
 
 float xrot = 0.0f;
 float yrot = 0.0f;
@@ -19,6 +19,7 @@ float ydiff = 0.0f;
 
 void menu(int num){
     xrot =0; yrot=0;
+    zoom=10.0;
     glutPostRedisplay();
 }
 
