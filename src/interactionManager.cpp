@@ -5,6 +5,7 @@
 #include <GL/glut.h>
 #include "interactionManager.hpp"
 #include <iostream>
+#include <glm/glm.hpp>
 
 static int menu_id;
 bool mouseDown = false;
@@ -39,7 +40,7 @@ void reshape(int w, int h)
     gluPerspective(110,1.0,1.0,1000);
     glMatrixMode (GL_MODELVIEW);
 
-    gluLookAt(0.0, -30.0, -30.0, 0.0, -40.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(0.0, -30.0, -5.0, 0.0, -35.0, 0.0, 0.0, 1.0, 0.0);
 }
 
 void keyboard(int key, int x, int y)
@@ -57,7 +58,8 @@ void keyboard(int key, int x, int y)
             break;
 
         case GLUT_KEY_RIGHT:
-        std::cout<<zoom<<std::endl;
+            std::cout<<zoom<<std::endl;
+            std::cout<<glm::sin(glm::radians(xrot)) * (zoom-10)<<std::endl;
             break;
 
         default:
@@ -93,7 +95,8 @@ void updateCamera(void)
     if (CAMERA_SPEED != 0)
     {
         if(CAMERA_IN){
-            zoom += speed;
+            if(glm::sin(glm::radians(xrot)) * (zoom-10) > -30 and glm::cos(glm::radians(xrot)) * (zoom-10) < 80
+               and glm::sin(glm::radians(xrot)) * (zoom-10) < 60) zoom += speed;
         }
         else{
             if(zoom > 1) zoom -= speed ;
@@ -130,8 +133,12 @@ void mouseMotion(int x, int y)
 {
     if (mouseDown)
     {
-        yrot = x - xdiff;
-        xrot = y + ydiff;
+        if(glm::sin(glm::radians(y + ydiff)) * (zoom-10) > -30 and glm::cos(glm::radians(y + ydiff)) * (zoom -10) < 90
+                                                                   and glm::sin(glm::radians(y + ydiff)) * (zoom-10) < 60)
+        {
+            yrot = x - xdiff;
+            xrot = y + ydiff;
+        }
 
         glutPostRedisplay();
     }

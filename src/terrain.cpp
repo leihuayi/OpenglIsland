@@ -3,11 +3,15 @@
 //
 
 #include "terrain.hpp"
+#include "../SOIL.h"
 #include <iostream>
 
 int timeLastFrame = 0;
+GLuint textureSky[6], textureWave, textureTerrain[2];
 
-void drawWaves(GLuint textureWave)
+GLubyte* heightMap;
+
+void drawWaves()
 {
     glColor4f(0.7,0.9,1.0,1.0);
 
@@ -32,12 +36,12 @@ float updateWaves(float waveShift)
     return waveShift;
 }
 
-void drawSky(GLuint textureSky[])
+void drawSky()
 {
     glColor4f(1.0,1.0,1.0,0.5);
 
     // Bottom Face
-    glBindTexture(GL_TEXTURE_2D, textureSky[1]);
+    glBindTexture(GL_TEXTURE_2D, textureSky[5]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Repeat texture
     glBegin(GL_QUADS);
@@ -131,23 +135,101 @@ void drawTerrain(unsigned char pHeightMap[], int map_size)             // This R
             float z2 = (j + 1) * size;
 
             glMultiTexCoord2f(GL_TEXTURE0, j * step, i * step);
-            glMultiTexCoord2f(GL_TEXTURE1, 0, 0);
+            glMultiTexCoord2f(GL_TEXTURE1, j * step, i * step);
             glVertex3f(x1, height1, z1);
 
             glMultiTexCoord2f(GL_TEXTURE0, j * step, (i + 1) * step);
-            glMultiTexCoord2f(GL_TEXTURE1, 0, 1);
+            glMultiTexCoord2f(GL_TEXTURE1, j * step, (i + 1) * step);
             glVertex3f(x2, height3, z1);
 
             glMultiTexCoord2f(GL_TEXTURE0, (j + 1) * step, (i + 1) * step);
-            glMultiTexCoord2f(GL_TEXTURE1, 1, 1);
+            glMultiTexCoord2f(GL_TEXTURE1, (j + 1) * step, (i + 1) * step);
             glVertex3f(x2, height4, z2);
 
             glMultiTexCoord2f(GL_TEXTURE0, (j + 1) * step, i * step);
-            glMultiTexCoord2f(GL_TEXTURE1, 1, 0);
+            glMultiTexCoord2f(GL_TEXTURE1, (j + 1) * step, i * step);
             glVertex3f(x1, height2, z2);
         }
     }
 
     glEnd();
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);          // Reset The Color
+}
+
+GLuint loadTexture( char* texName)
+{
+    // load an image file directly as a new OpenGL texture
+    GLuint texId = SOIL_load_OGL_texture
+            (
+                    texName,
+                    SOIL_LOAD_AUTO,
+                    SOIL_CREATE_NEW_ID,
+                    SOIL_FLAG_MIPMAPS | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_MULTIPLY_ALPHA
+            );
+
+    // check for an error during the load process
+    if( 0 == texId ) std::cout << "SOIL loading error: "<< SOIL_last_result() << std::endl;
+    return texId;
+}
+
+void createTerrainList(GLuint list)
+{
+    // load an image file directly as a new OpenGL texture
+    textureSky[0] = loadTexture("../images/SkyBox1.bmp");
+    textureSky[1] = loadTexture("../images/SkyBox4.bmp");
+    textureSky[2] = loadTexture("../images/SkyBox3.bmp");
+    textureSky[3] = loadTexture("../images/SkyBox2.bmp");
+    textureSky[4] = loadTexture("../images/SkyBox0.bmp");
+    textureSky[5] = loadTexture("../images/SkyBoxReflect.png");
+    textureWave = loadTexture("../images/wave.bmp");
+    textureTerrain[0] = loadTexture("../images/terrain-texture.bmp");
+    textureTerrain[1] = loadTexture("../images/terrain-detail.bmp");
+    int MAP_SIZE = 0, channels = 1;
+    heightMap = SOIL_load_image("../images/heightmap.bmp", &MAP_SIZE, &MAP_SIZE, &channels, SOIL_LOAD_L);
+
+
+    glNewList(list, GL_COMPILE);
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_TEXTURE_2D);
+        drawWaves();
+        glDisable(GL_TEXTURE_2D);
+    glEndList();
+
+    glNewList(list + 1, GL_COMPILE);
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_TEXTURE_2D);
+        drawSky();
+        glDisable(GL_TEXTURE_2D);
+    glEndList();
+
+    GLdouble plane[4] = {0.0,1,0.0,-7};
+
+    glNewList(list + 2, GL_COMPILE);
+        glTranslatef(0,-57,0);
+        glScalef(0.3,0.3,0.3);
+        glClipPlane(GL_CLIP_PLANE0, plane);
+
+        glActiveTexture(GL_TEXTURE0);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textureTerrain[0]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+
+        glActiveTexture(GL_TEXTURE1);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textureTerrain[1]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD_SIGNED);
+
+        drawTerrain(heightMap, MAP_SIZE);
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_TEXTURE_2D);
+    glEndList();
 }

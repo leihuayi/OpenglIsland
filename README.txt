@@ -128,7 +128,11 @@ I followed the same steps as described in the guide pdf file.
      I enabled the depth test in order to see better the effects of these settings while
      making these arrangements.
 
-6- I added level detail.
+6- I added level detail by superposing the two terrain textures with GL_TEXTURE0 and GL_TEXTURE1.
+
+7- In order to optimize the rendering, I put the drawing of the 3 terrain elements (skybox, wave,
+    terrain) in 3 display lists. There are initialized from terrain.cpp/createTerrainList() where
+    we load all the textures and create all the display lists.
 
 7- I implemented the interactions in interactionManager.cpp.
     The rotation of the camera was made like in the Pyramid homework.
@@ -142,4 +146,4 @@ I followed the same steps as described in the guide pdf file.
     CAMERA_SPEED to 2 and decrease the zooming speed until reaching 0. This is done in
     interactionManager.cpp/updateCameraSpeed() function.
 
-    I limit zooming out, otherwise when zoom value gets negative the whole scene is inverted.
+    I made many conditions using sinus and cosinus in order to prevent getting out of the skybox.
