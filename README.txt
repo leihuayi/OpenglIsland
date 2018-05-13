@@ -59,7 +59,8 @@ src/                == Project-specific files.
     main            -- contains main function for project : init of opengl,
                         creation of displaylists
     terrain         -- all functions for drawing the terrain : sky, waves,
-                        and terrain generation, movement of waves
+                        and terrain generation, movement of waves,
+                        displaylists content with textures
     interactionManager -- all functions related to user input : rotation of
                            the view, show menu, update view
 
@@ -147,3 +148,19 @@ I followed the same steps as described in the guide pdf file.
     interactionManager.cpp/updateCameraSpeed() function.
 
     I made many conditions using sinus and cosinus in order to prevent getting out of the skybox.
+    These settings were made knowing that I originally start at position (0,-30,-5) and the skybox
+    border is (-100, 100) in length/width and (-50,50) in height.
+
+
+---------------------------------------------------------------------------
+Remarks
+--------------------------------------------------------------------------
+
+- The skybox has an odd rendering as the corners are pretty obvious. Hovever, as I used the same
+    skybox code for the previous homework (snow animation) and the skybox looked perfect, I
+    think the problem does not come from my code but from the Skybox images given with the project.
+
+- Since the skybox bottom was not designed as part of the skybox, it also creates a hard edge. In
+    order to have a better effect, instead of plainly using the top plane reflexion, I aggregated
+    all the planes that form the skybox using an image editor software to create SkyBoxReflect.png.
+    This gives softer edges to the skybox where the ocean starts.
