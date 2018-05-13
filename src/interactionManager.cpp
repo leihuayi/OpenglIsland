@@ -3,9 +3,12 @@
 //
 #include <GL/gl.h>
 #include <GL/glut.h>
-#include "interactionManager.hpp"
-#include <iostream>
 #include <glm/glm.hpp>
+#include <iostream>
+
+#include "interactionManager.hpp"
+#include "camera.hpp"
+using namespace glm;
 
 static int menu_id;
 bool mouseDown = false;
@@ -13,16 +16,23 @@ float zoom = 10.0;
 float speed = 0.0;
 int CAMERA_SPEED = 0; // = 0 if the camera doesn't move, =1 is camera speed increases, =2 if camera speed decreases.
 bool CAMERA_IN = true; // true for zoom in
+Camera camera;
 
-float xrot = 0.0f;
-float yrot = 0.0f;
+class Window {
+public:
+    Window() {
+        this->interval = 1000 / 60;		//60 FPS
+        this->window_handle = -1;
+    }
+    int window_handle, interval;
+    ivec2 size;
+    float window_aspect;
+} window;
 
-float xdiff = 0.0f;
-float ydiff = 0.0f;
 
 void menu(int num){
-    xrot =0; yrot=0;
-    zoom=10.0;
+    camera.SetPosition(glm::vec3(-10, -30, -10));
+    camera.SetLookAt(glm::vec3(0, -35, 0));
     glutPostRedisplay();
 }
 
@@ -34,49 +44,41 @@ void createMenu(void){
 
 void reshape(int w, int h)
 {
-    glViewport(0, 0, (GLsizei) w, (GLsizei) h);
-    glMatrixMode (GL_PROJECTION);
-    glLoadIdentity ();
-    gluPerspective(110,1.0,1.0,1000);
-    glMatrixMode (GL_MODELVIEW);
+    if (h > 0) {
+        window.size = ivec2(w, h);
+        window.window_aspect = float(w) / float(h);
+    }
+    camera.SetViewport(0, 0, window.size.x, window.size.y);
+}
 
-    gluLookAt(0.0, -30.0, -5.0, 0.0, -35.0, 0.0, 0.0, 1.0, 0.0);
+bool check_dir(int i, int j)
+{
+    return camera.camera_position[i]*camera.camera_direction[j]<0;
 }
 
 void keyboard(int key, int x, int y)
 {
+    bool check_pos_x = abs(camera.camera_position.x)<90;
+    bool check_pos_y = abs(camera.camera_position.y+5)<40;
+    bool check_pos_z = abs(camera.camera_position.z)<90;
+
     switch(key)
     {
-        case GLUT_KEY_UP: // space bar
-            CAMERA_SPEED = 1;
-            CAMERA_IN = true;
+        case GLUT_KEY_UP:
+            if ((check_pos_x or check_dir(0,0)) and (check_pos_y or check_dir(1,1)) and (check_pos_z or check_dir(2,2)))
+            {camera.Move(FORWARD);}
             break;
-
-        case GLUT_KEY_DOWN: // space bar
-            CAMERA_SPEED = 1;
-            CAMERA_IN = false;
+        case  GLUT_KEY_LEFT:
+            if((check_pos_x or check_dir(0,2)) and (check_pos_z or !check_dir(2,0)))
+            {camera.Move(LEFT);}
             break;
-
-        case GLUT_KEY_RIGHT:
-            std::cout<<zoom<<std::endl;
-            std::cout<<glm::sin(glm::radians(xrot)) * (zoom-10)<<std::endl;
+        case GLUT_KEY_DOWN:
+            if ((check_pos_x or !check_dir(0,0)) and (check_pos_y or !check_dir(1,1)) and (check_pos_z or !check_dir(2,2)))
+            {camera.Move(BACK);}
             break;
-
-        default:
-            break;
-    }
-}
-
-void keyboardUp(int key, int x, int y)
-{
-    switch(key)
-    {
-        case GLUT_KEY_UP: // space bar
-            CAMERA_SPEED = 2;
-            break;
-
-        case GLUT_KEY_DOWN: // space bar
-            CAMERA_SPEED = 2;
+        case  GLUT_KEY_RIGHT:
+            if((check_pos_x or !check_dir(0,2)) and (check_pos_z or check_dir(2,0)))
+            {camera.Move(RIGHT);}
             break;
 
         default:
@@ -86,60 +88,30 @@ void keyboardUp(int key, int x, int y)
 
 void updateCamera(void)
 {
+    glm::mat4 model, view, projection;
+    camera.Update();
+    camera.GetMatricies(projection, view, model);
 
-    gluLookAt(0.0, 0.0, zoom, 0.0, 0, 0, 0.0, 1.0, 0.0);
-    glRotatef(xrot, 1.0f, 0.0f, 0.0f);
-    glRotatef(yrot, 0.0f, 1.0f, 0.0f);
-
-
-    if (CAMERA_SPEED != 0)
-    {
-        if(CAMERA_IN){
-            if(glm::sin(glm::radians(xrot)) * (zoom-10) > -30 and glm::cos(glm::radians(xrot)) * (zoom-10) < 80
-               and glm::sin(glm::radians(xrot)) * (zoom-10) < 60) zoom += speed;
-        }
-        else{
-            if(zoom > 1) zoom -= speed ;
-        }
-        if(CAMERA_SPEED == 1)
-        {
-            if (speed < 1) speed += 0.02;
-        }
-        else
-        {
-            if (speed > 0) { speed -= 0.02; }
-            else { CAMERA_SPEED = 0; }
-        }
-    }
+    glm::mat4 mvp = projection* view * model;	//Compute the mvp matrix
+    glLoadMatrixf(glm::value_ptr(mvp));
 }
 
 void mouse(int button, int state, int x, int y)
 {
-    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
-    {
-        mouseDown = true;
-
-        xdiff = x - yrot;
-        ydiff = -y + xrot;
-    }
-    else
-    {
-        mouseDown = false;
-    }
+    camera.SetPos(button, state, x, y);
 }
 
 // Function for rotating the pyramid with the mouse
 void mouseMotion(int x, int y)
 {
-    if (mouseDown)
-    {
-        if(glm::sin(glm::radians(y + ydiff)) * (zoom-10) > -30 and glm::cos(glm::radians(y + ydiff)) * (zoom -10) < 90
-                                                                   and glm::sin(glm::radians(y + ydiff)) * (zoom-10) < 60)
-        {
-            yrot = x - xdiff;
-            xrot = y + ydiff;
-        }
+    camera.Move2D(x, y);
+}
 
-        glutPostRedisplay();
-    }
+void initCamera()
+{
+    camera.SetMode(FREE);
+    camera.SetPosition(glm::vec3(-10, -30, -10));
+    camera.SetLookAt(glm::vec3(0, -35, 0));
+    camera.SetClipping(.1, 1000);
+    camera.SetFOV(50);
 }

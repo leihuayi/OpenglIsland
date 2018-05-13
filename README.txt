@@ -135,22 +135,17 @@ I followed the same steps as described in the guide pdf file.
     terrain) in 3 display lists. There are initialized from terrain.cpp/createTerrainList() where
     we load all the textures and create all the display lists.
 
-7- I implemented the interactions in interactionManager.cpp.
-    The rotation of the camera was made like in the Pyramid homework.
-    The camera zooms/out in as long as the arrow up/down is pressed. In order to know when the
-    key is released, I had use the setting glutIgnoreKeyRepeat(true); so that each small key
-    press in the long key press don't raise a key release event.
-    Then, in order to slowly increase of decrease camera speed for smooth transition, I use
-    a variable CAMERA_SPEED equal to 0 if the camera doesn't move, 1 if its speed increase
-    and 2 if its speed decrease. When arrow is pressed, I set CAMERA_SPEED to 1 and increase
-    the zooming speed of the camera until reaching 1, and when arrow is released I set
-    CAMERA_SPEED to 2 and decrease the zooming speed until reaching 0. This is done in
-    interactionManager.cpp/updateCameraSpeed() function.
+7- I implemented the interactions in interactionManager.cpp, using a helper class Camera.
+    The user can move around in the scene using up and back arrows to go forward and backward,
+    and right and left arrowd to go right or left.
 
-    I made many conditions using sinus and cosinus in order to prevent getting out of the skybox.
-    These settings were made knowing that I originally start at position (0,-30,-5) and the skybox
-    border is (-100, 100) in length/width and (-50,50) in height.
+    At each frame, we compute the view and projection matrix using Camera::Update.
+    In order to have smooth transitions, we slowly increase or decrease the camera rotation
+    (camera_pitch) and camera movement (camera_heading).
 
+    In interactionManager.cpp, I made many conditions on camera_position and camera_direction
+    in order to avoid getting out of the box (conditions on camera_position) without staying blocked
+    once we reached the box boundaries (conditions on camera_position * camera_direction).
 
 ---------------------------------------------------------------------------
 Remarks

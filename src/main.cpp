@@ -1,5 +1,4 @@
-#include <GL/gl.h>
-#include <GL/glut.h>
+#include <GL/glew.h>
 #include  <iostream>
 
 #include "interactionManager.hpp"
@@ -15,8 +14,7 @@ void display(void)
 /*  clear all pixels  */
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glPushMatrix();
-        updateCamera();
+    updateCamera();
 
     glPushMatrix();
             glScalef(100.0, 100.0, 100.0);
@@ -32,11 +30,10 @@ void display(void)
 
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        glPopMatrix();
+    glPopMatrix();
 
-        glPushMatrix();
-            glCallList(terrainList + 2);
-        glPopMatrix();
+    glPushMatrix();
+        glCallList(terrainList + 2);
     glPopMatrix();
 
     waveShift = updateWaves(waveShift);
@@ -55,13 +52,13 @@ void init (void) {
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CLIP_PLANE0);
 
-    glutIgnoreKeyRepeat(true);
-
     glLoadIdentity();
 
     terrainList = glGenLists(3);
 
     createTerrainList(terrainList);
+
+    initCamera();
 }
 
 int main(int argc, char** argv)
@@ -72,11 +69,16 @@ int main(int argc, char** argv)
     glutInitWindowPosition (100, 100);
     glutCreateWindow ("Project 2 : Terrain");
     createMenu();
+    glewExperimental = GL_TRUE;
+
+    if (glewInit() != GLEW_OK) {
+        std::cerr << "GLEW failed to initialize." << std::endl;
+        return 0;
+    }
     init ();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutSpecialFunc(keyboard);
-    glutSpecialUpFunc(keyboardUp);
     glutMouseFunc(mouse);
     glutMotionFunc(mouseMotion);
     glutMainLoop();
