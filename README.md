@@ -1,29 +1,27 @@
 README
-Author: Sarah Gross <leihy17@mails.tsinghua.edu.cn>, student 2017280160
+Author: Sarah Gross
 
----------------------------------------------------------------------------
-Overview
----------------------------------------------------------------------------
+# Overview
 
 This project renders a island created from a heightmap with flowing water
 around.
 
-demo.mp4 shows a demonstration of the result 
+demo.gif shows a demonstration of the result.
+![alt text](https://github.com/Akahime/OpenglIsland/blob/master/demo.gif)
 
----------------------------------------------------------------------------
-Building and running the Code
----------------------------------------------------------------------------
+# Building and running the Code
 
 This project was originally built using the IDE CLion using CMakeLists.txt.
 The file cmake/FindSOIL.cmake gives information on the SOIL lib so that the
 program can build successfully.
 
-Linux
--------------------------
+## Linux
+
 Download Cmake :
 https://askubuntu.com/questions/829310/how-to-upgrade-cmake-in-ubuntu/829311
 
 Create a new folder "build" at the root :
+
     mkdir build
     cd build
     cmake ..
@@ -31,19 +29,18 @@ Create a new folder "build" at the root :
 
 
 To run the program, go to build folder and run :
-    ./Terrain
+    `./Terrain`
 
 
-Windows
--------------------------
+## Windows
+
 Download Cmake (https://cmake.org/download/)
 Follow this tutorial to build and run the code :
 https://cmake.org/runningcmake/
 
 
----------------------------------------------------------------------------
-Source Files and Directory Structure
----------------------------------------------------------------------------
+# Source Files and Directory Structure
+
 
 The code is in the src folder.
 
@@ -65,20 +62,18 @@ src/                == Project-specific files.
                            the view, show menu, update view
 
 
----------------------------------------------------------------------------
-Implementation steps
---------------------------------------------------------------------------
-I followed the same steps as described in the guide pdf file.
+# Implementation steps
 
-1- I built the skybox using 5 planes (terrain.cpp/drawSky() ). The base is
+
+1. I built the skybox using 5 planes (terrain.cpp/drawSky() ). The base is
     a square between coordinates (-1,1), the height is between (-0.5,0.5)
     since the original images are stretched.
 
-2- I added a 6th bottom plane to the skybox, which is the reflection of the
+2. I added a 6th bottom plane to the skybox, which is the reflection of the
     top plane. I created a new function in terrain.cpp call drawWaves() which
     adds a plane with water texture on the reflected sky plane.
 
-3- I made the waves move.
+3. I made the waves move.
     I created the waves plane a big longer than the bottom plane and make
     it move forward by translating it of value "waveShift" in z direction before
     drawing it. If I didn't make the plane longer, the user would see the waves
@@ -102,10 +97,10 @@ I followed the same steps as described in the guide pdf file.
 
     Finally, in order not that the see the wave plane is bigger than the bottom plane
     through the walls of the skyBox, I chose a blending value :
-    ```glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);```
+    `glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);`
     between drawing the waves and drawing the sky.
 
-4- I drew the terrain by first loading the heightmap using SOIL library, then I used the
+4. I drew the terrain by first loading the heightmap using SOIL library, then I used the
     function terrain.cpp/drawTerrain() to loop through the heightMap array and build in each
     loop a quad (4 vertices) by reading for each x, z value its corresponding height, using
     the formula :
@@ -115,7 +110,7 @@ I followed the same steps as described in the guide pdf file.
     We resize the height using the value scale, since otherwise the terrain height variance
     would we way too big and look strange.
 
-5- Since using blending functions to see the water through the terrain would be complicated
+5. Since using blending functions to see the water through the terrain would be complicated
     given that we already have a blending constraint on the sky - water couple, I decided to
     use a clipping plane for that purpose.
 
@@ -129,13 +124,13 @@ I followed the same steps as described in the guide pdf file.
      I enabled the depth test in order to see better the effects of these settings while
      making these arrangements.
 
-6- I added level detail by superposing the two terrain textures with GL_TEXTURE0 and GL_TEXTURE1.
+6. I added level detail by superposing the two terrain textures with GL_TEXTURE0 and GL_TEXTURE1.
 
-7- In order to optimize the rendering, I put the drawing of the 3 terrain elements (skybox, wave,
+7. In order to optimize the rendering, I put the drawing of the 3 terrain elements (skybox, wave,
     terrain) in 3 display lists. There are initialized from terrain.cpp/createTerrainList() where
     we load all the textures and create all the display lists.
 
-7- I implemented the interactions in interactionManager.cpp, using a helper class Camera.
+8. I implemented the interactions in interactionManager.cpp, using a helper class Camera.
     The user can move around in the scene using up and back arrows to go forward and backward,
     and right and left arrowd to go right or left.
 
@@ -147,15 +142,13 @@ I followed the same steps as described in the guide pdf file.
     in order to avoid getting out of the box (conditions on camera_position) without staying blocked
     once we reached the box boundaries (conditions on camera_position * camera_direction).
 
----------------------------------------------------------------------------
-Remarks
---------------------------------------------------------------------------
+# Remarks
 
-- The skybox has an odd rendering as the corners are pretty obvious. Hovever, as I used the same
+* The skybox has an odd rendering as the corners are pretty obvious. Hovever, as I used the same
     skybox code for the previous homework (snow animation) and the skybox looked perfect, I
     think the problem does not come from my code but from the Skybox images given with the project.
 
-- Since the skybox bottom was not designed as part of the skybox, it also creates a hard edge. In
+* Since the skybox bottom was not designed as part of the skybox, it also creates a hard edge. In
     order to have a better effect, instead of plainly using the top plane reflexion, I aggregated
     all the planes that form the skybox using an image editor software to create SkyBoxReflect.png.
     This gives softer edges to the skybox where the ocean starts.
