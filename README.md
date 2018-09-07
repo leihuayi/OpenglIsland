@@ -7,7 +7,7 @@ This project renders a island created from a heightmap with flowing water
 around.
 
 demo.gif shows a demonstration of the result.
-![alt text](https://github.com/Akahime/OpenglIsland/blob/master/demo.gif)
+![alt text](https://github.com/leihuayi/OpenglIsland/blob/master/demo.gif)
 
 # Building and running the Code
 
